@@ -1,0 +1,107 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local TextLabel = Instance.new("TextLabel")
+local toggle = Instance.new("TextButton")
+
+--Properties:
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame.Position = UDim2.new(0.219056979, 0, 0.166982919, 0)
+Frame.Size = UDim2.new(0, 302, 0, 302)
+
+TextLabel.Parent = Frame
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.Position = UDim2.new(0.0773276016, 0, 0.0331125818, 0)
+TextLabel.Size = UDim2.new(0, 266, 0, 50)
+TextLabel.Font = Enum.Font.GothamBlack
+TextLabel.Text = "Silent Aim"
+TextLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel.TextScaled = true
+TextLabel.TextSize = 14.000
+TextLabel.TextWrapped = true
+
+toggle.Name = "toggle"
+toggle.Parent = Frame
+toggle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggle.BackgroundTransparency = 1.000
+toggle.Position = UDim2.new(0.185430467, 0, 0.198675498, 0)
+toggle.Size = UDim2.new(0, 200, 0, 50)
+toggle.Font = Enum.Font.SourceSans
+toggle.Text = "Off"
+toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
+toggle.TextSize = 39.000
+
+-- Scripts:
+
+local function SDFSWXV_fake_script() -- toggle.LocalScript 
+	local script = Instance.new('LocalScript', toggle)
+
+	
+	_G.silentaim = false
+	script.Parent.MouseButton1Click:Connect(function()
+		if _G.silentaim == false then
+			_G.silentaim = true
+			script.Parent.Text = "On"
+			script.Parent.TextColor3 = Color3.fromRGB(136, 255, 0)
+		else
+			_G.silentaim = false
+			script.Parent.Text = "Off"
+			script.Parent.TextColor3 = Color3.fromRGB(255, 0, 4)
+		end
+	end)
+	
+	local players = game:GetService("Players")
+	local plr = players.LocalPlayer
+	local mouse = plr:GetMouse()
+	local camera = game.Workspace.CurrentCamera
+	local teamcheck = true
+	
+	local function ClosestPlayerToMouse()
+		local target = nil
+		local dist = math.huge
+		for i,v in pairs(players:GetPlayers()) do
+			if v.Name ~= plr.Name then
+				if v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health ~= 0 and v.Character:FindFirstChild("HumanoidRootPart") and _G.silentaim and teamcheck and v.TeamColor ~= plr.TeamColor then
+					local screenpoint = camera:WorldToScreenPoint(v.Character.HumanoidRootPart.Position)
+					local check = (Vector2.new(mouse.X,mouse.Y)-Vector2.new(screenpoint.X,screenpoint.Y)).magnitude
+	
+					if check < dist then
+						target  = v
+						dist = check
+					end
+				end
+			end
+		end
+	
+		return target 
+	end
+	
+	local mt = getrawmetatable(game)
+	local namecall = mt.__namecall
+	setreadonly(mt,false)
+	
+	mt.__namecall = function(self,...)
+		local args = {...}
+		local method = getnamecallmethod()
+	
+		if tostring(self) == "HitPart" and method == "FireServer" then
+			print("so?")
+			args[1] = ClosestPlayerToMouse().Character.Head
+			args[2] = ClosestPlayerToMouse().Character.Head.Position
+			return self.FireServer(self, unpack(args))
+		end
+		return namecall(self,...)
+	end
+	
+end
+coroutine.wrap(SDFSWXV_fake_script)()
